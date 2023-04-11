@@ -1,4 +1,15 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "commonjs",
+    "target": "es2017",
+    "types": [
+      "node"
+    ]
+  },
+  "exclude": [
+    "test",
+    "**/*.spec.ts"
+  ]
 }

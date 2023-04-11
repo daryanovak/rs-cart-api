@@ -1,0 +1,23 @@
+service: my-app
+
+provider:
+  name: aws
+  region: eu-west-1
+  runtime: nodejs14.x
+  environment:
+    PGHOST: db-dev-flowers-shop.c9xpt800a7s6.eu-west-1.rds.amazonaws.com
+    PGPORT: 5432
+    PGDATABASE: flowers_shop
+    PGUSER: postgres
+    PGPASSWORD: postgres
+
+functions:
+  app:
+    handler: dist/main.handler
+    events:
+      - http:
+          method: ANY
+          path: /
+      - http:
+          method: ANY
+          path: '{proxy+}'

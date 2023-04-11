@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Database } from 'src/db/database';
 
 import { v4 } from 'uuid';
 
@@ -6,26 +7,18 @@ import { Cart } from '../models';
 
 @Injectable()
 export class CartService {
-  private userCarts: Record<string, Cart> = {};
+  private database = Database.getInstance()
 
-  findByUserId(userId: string): Cart {
-    return this.userCarts[ userId ];
+  async findByUserId(userId: string): Promise<Cart> {
+    return await this.database.getActiveCartForUser(userId)
   }
 
-  createByUserId(userId: string) {
-    const id = v4(v4());
-    const userCart = {
-      id,
-      items: [],
-    };
-
-    this.userCarts[ userId ] = userCart;
-
-    return userCart;
+  async createByUserId(userId: string): Promise<Cart> {
+    return await this.database.createEmptyCartForUser(userId)
   }
 
-  findOrCreateByUserId(userId: string): Cart {
-    const userCart = this.findByUserId(userId);
+  async findOrCreateByUserId(userId: string): Promise<Cart> {
+    const userCart = await this.findByUserId(userId);
 
     if (userCart) {
       return userCart;
@@ -34,22 +27,11 @@ export class CartService {
     return this.createByUserId(userId);
   }
 
-  updateByUserId(userId: string, { items }: Cart): Cart {
-    const { id, ...rest } = this.findOrCreateByUserId(userId);
-
-    const updatedCart = {
-      id,
-      ...rest,
-      items: [ ...items ],
-    }
-
-    this.userCarts[ userId ] = { ...updatedCart };
-
-    return { ...updatedCart };
+  async updateByUserId(userId: string, { items }: Cart): Promise<Cart> {
+    return await this.database.updateUserCartItems(userId, items);
   }
 
-  removeByUserId(userId): void {
-    this.userCarts[ userId ] = null;
+  async removeByUserId(userId) {
+    await this.database.deleteActiveCartForUser(userId)
   }
-
 }

@@ -1,24 +1,35 @@
-import { Client } from 'pg';
+import { Pool } from 'pg';
 import { Cart, CartItem, Product } from 'src/cart';
 import { v4 as uuidv4 } from 'uuid';
 
 export class Database {
     private static instance: Database;
 
-    private client: Client;
+    private pool: Pool;
 
     private constructor() {
-        this.client = new Client({
-            user: 'postgres',
-            host: 'db-dev-flowers-shop.c9xpt800a7s6.eu-west-1.rds.amazonaws.com',
-            database: 'flowers_shop',
-            password: 'postgres',
-            port: 5432,
+        this.pool = new Pool({
+            // user: 'postgres',
+            // host: 'db-dev-flowers-shop.c9xpt800a7s6.eu-west-1.rds.amazonaws.com',
+            // database: 'flowers_shop',
+            // password: 'postgres',
+            // port: 5432,
             ssl: { rejectUnauthorized: false }
         });
-        this.client.connect();
+        this.pool.on('error', (err, client) => {
+            console.error('Error:', err);
+        });
     }
 
+    private async query<T>(query: string, values: any[]): Promise<any> {
+        const client = await this.pool.connect();
+        try {
+          const result = await client.query<T>(query, values);
+          return result;
+        } finally {
+          client.release();
+        }
+    }
 
     private products: Product[] = [
         {
@@ -51,7 +62,7 @@ export class Database {
         `;
         const cartValues = [userId];
 
-        const { rows } = await this.client.query(cartQuery, cartValues);
+        const { rows } = await this.query(cartQuery, cartValues);
 
         if (rows.length === 0) {
             // no active cart found for user
@@ -66,7 +77,7 @@ export class Database {
           WHERE ci.cart_id = $1;
         `;
         const itemsValues = [cart.id];
-        const itemsResult = await this.client.query(itemsQuery, itemsValues);
+        const itemsResult = await this.query(itemsQuery, itemsValues);
 
         const items = itemsResult.rows.map((row) => {
             const product = this.products.find(p => p.id === row.product_id);
@@ -94,7 +105,7 @@ export class Database {
   `;
         const cartId = uuidv4();
         const values = [uuidv4(), userId];
-        await this.client.query(query, values);
+        await this.query(query, values);
         return {
             id: cartId,
             items: [],
@@ -108,7 +119,7 @@ export class Database {
         `;
         const values = [userId];
 
-        await this.client.query(updateQuery, values);
+        await this.query(updateQuery, values);
     }
 
     public async checkoutActiveCartForUser(userId: string, body: any): Promise<any> {
@@ -142,14 +153,14 @@ export class Database {
             order.status,
             order.total
         ];
-        await this.client.query(insertQuery, insertValues);
+        await this.query(insertQuery, insertValues);
 
         const updateQuery = `
           UPDATE carts SET status = 'ordered'
           WHERE id = $1;
         `;
         const updateValues = [activeCart.id];
-        await this.client.query(updateQuery, updateValues);
+        await this.query(updateQuery, updateValues);
         return order;
     }
 
@@ -162,15 +173,15 @@ export class Database {
         }
 
         // Create a new active cart if one doesn't exist
-        let cartId = (await this.getActiveCartForUser(userId)).id;
-        if (!cartId) {
-            cartId = (await this.createEmptyCartForUser(userId)).id;
+        let activeCart = await this.getActiveCartForUser(userId);
+        if (!activeCart) {
+            activeCart = await this.createEmptyCartForUser(userId)
         }
 
         // Delete existing cart items
         const deleteQuery = 'DELETE FROM cart_items WHERE cart_id = $1';
-        const deleteParams = [cartId];
-        await this.client.query(deleteQuery, deleteParams);
+        const deleteParams = [activeCart.id];
+        await this.query(deleteQuery, deleteParams);
 
         // Insert new cart items
         const insertQuery = `
@@ -178,8 +189,8 @@ export class Database {
             VALUES ($1, $2, $3);
         `;
         for (const item of cartItems) {
-            const insertValues = [cartId, item.product.id, item.count];
-            await this.client.query(insertQuery, insertValues);
+            const insertValues = [activeCart.id, item.product.id, item.count];
+            await this.query(insertQuery, insertValues);
         }
 
         // Get the updated cart object
@@ -187,6 +198,4 @@ export class Database {
 
         return cart;
     }
-
-
 }

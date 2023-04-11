@@ -8,6 +8,13 @@
       "name": "aws",
       "region": "eu-west-1",
       "runtime": "nodejs14.x",
+      "environment": {
+        "PGHOST": "db-dev-flowers-shop.c9xpt800a7s6.eu-west-1.rds.amazonaws.com",
+        "PGPORT": "5432",
+        "PGDATABASE": "flowers_shop",
+        "PGUSER": "postgres",
+        "PGPASSWORD": "postgres"
+      },
       "stage": "dev",
       "versionFunctions": true,
       "compiledCloudFormationTemplate": {
@@ -174,13 +181,22 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/my-app/dev/1681157255758-2023-04-10T20:07:35.758Z/my-app.zip"
+                "S3Key": "serverless/my-app/dev/1681250145364-2023-04-11T21:55:45.364Z/my-app.zip"
               },
               "Handler": "dist/main.handler",
               "Runtime": "nodejs14.x",
               "FunctionName": "my-app-dev-app",
               "MemorySize": 1024,
               "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "PGHOST": "db-dev-flowers-shop.c9xpt800a7s6.eu-west-1.rds.amazonaws.com",
+                  "PGPORT": "5432",
+                  "PGDATABASE": "flowers_shop",
+                  "PGUSER": "postgres",
+                  "PGPASSWORD": "postgres"
+                }
+              },
               "Role": {
                 "Fn::GetAtt": [
                   "IamRoleLambdaExecution",
@@ -192,14 +208,14 @@
               "AppLogGroup"
             ]
           },
-          "AppLambdaVersiondytfWYt8PqVP2iTYgS8uhHD2NdZlLbXtW2rRbejR8": {
+          "AppLambdaVersion5JNrw8xHggRQF7GVhbQLNlwKNugpPZ5n4hFXBZzw": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "AppLambdaFunction"
               },
-              "CodeSha256": "yHggaGOo1Vcpjf/4OUCS2QtXpz8+ZMq3T1NStGnm6oM="
+              "CodeSha256": "/H+Hx14PPTdOOxhzWA2dPIcjAKGHLXcNKwIN1REM2uw="
             }
           },
           "ApiGatewayRestApi": {
@@ -324,7 +340,7 @@
               "AppLambdaPermissionApiGateway"
             ]
           },
-          "ApiGatewayDeployment1681157245997": {
+          "ApiGatewayDeployment1681250136630": {
             "Type": "AWS::ApiGateway::Deployment",
             "Properties": {
               "RestApiId": {
@@ -387,7 +403,7 @@
           "AppLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "AppLambdaVersiondytfWYt8PqVP2iTYgS8uhHD2NdZlLbXtW2rRbejR8"
+              "Ref": "AppLambdaVersion5JNrw8xHggRQF7GVhbQLNlwKNugpPZ5n4hFXBZzw"
             },
             "Export": {
               "Name": "sls-my-app-dev-AppLambdaFunctionQualifiedArn"
@@ -531,7 +547,7 @@
         "timeout": 6,
         "runtime": "nodejs14.x",
         "vpc": {},
-        "versionLogicalId": "AppLambdaVersiondytfWYt8PqVP2iTYgS8uhHD2NdZlLbXtW2rRbejR8"
+        "versionLogicalId": "AppLambdaVersion5JNrw8xHggRQF7GVhbQLNlwKNugpPZ5n4hFXBZzw"
       }
     },
     "configValidationMode": "warn",
@@ -550,7 +566,7 @@
     "artifact": "/Users/Darya_Novak/Desktop/8_task/rs-cart-api/.serverless/my-app.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/my-app/dev/1681157255758-2023-04-10T20:07:35.758Z",
+    "artifactDirectoryName": "serverless/my-app/dev/1681250145364-2023-04-11T21:55:45.364Z",
     "artifact": "my-app.zip"
   }
 }

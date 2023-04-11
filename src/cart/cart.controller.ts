@@ -17,8 +17,8 @@ export class CartController {
   // @UseGuards(JwtAuthGuard)
   // @UseGuards(BasicAuthGuard)
   @Get()
-  findUserCart(@Req() req: AppRequest) {
-    const cart = this.cartService.findOrCreateByUserId(getUserIdFromRequest(req));
+  async findUserCart(@Req() req: AppRequest) {
+    const cart = await this.cartService.findOrCreateByUserId(getUserIdFromRequest(req));
 
     return {
       statusCode: HttpStatus.OK,
@@ -30,8 +30,8 @@ export class CartController {
   // @UseGuards(JwtAuthGuard)
   // @UseGuards(BasicAuthGuard)
   @Put()
-  updateUserCart(@Req() req: AppRequest, @Body() body) { // TODO: validate body payload...
-    const cart = this.cartService.updateByUserId(getUserIdFromRequest(req), body)
+  async updateUserCart(@Req() req: AppRequest, @Body() body) { // TODO: validate body payload...
+    const cart = await this.cartService.updateByUserId(getUserIdFromRequest(req), body)
 
     return {
       statusCode: HttpStatus.OK,
@@ -46,8 +46,8 @@ export class CartController {
   // @UseGuards(JwtAuthGuard)
   // @UseGuards(BasicAuthGuard)
   @Delete()
-  clearUserCart(@Req() req: AppRequest) {
-    this.cartService.removeByUserId(getUserIdFromRequest(req));
+  async clearUserCart(@Req() req: AppRequest) {
+    await this.cartService.removeByUserId(getUserIdFromRequest(req));
 
     return {
       statusCode: HttpStatus.OK,
@@ -58,9 +58,9 @@ export class CartController {
   // @UseGuards(JwtAuthGuard)
   // @UseGuards(BasicAuthGuard)
   @Post('checkout')
-  checkout(@Req() req: AppRequest, @Body() body) {
+  async checkout(@Req() req: AppRequest, @Body() body) {
     const userId = getUserIdFromRequest(req);
-    const cart = this.cartService.findByUserId(userId);
+    const cart = await this.cartService.findByUserId(userId);
 
     if (!(cart && cart.items.length)) {
       const statusCode = HttpStatus.BAD_REQUEST;
@@ -71,17 +71,7 @@ export class CartController {
         message: 'Cart is empty',
       }
     }
-
-    const { id: cartId, items } = cart;
-    const total = calculateCartTotal(cart);
-    const order = this.orderService.create({
-      ...body, // TODO: validate and pick only necessary data
-      userId,
-      cartId,
-      items,
-      total,
-    });
-    this.cartService.removeByUserId(userId);
+    const order = this.orderService.create(userId, body);
 
     return {
       statusCode: HttpStatus.OK,

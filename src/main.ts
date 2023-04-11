@@ -15,7 +15,7 @@ async function bootstrap() {
   app.enableCors({
     origin: (req, callback) => callback(null, true),
   });
-  await app.init();
+  await app.listen(port);
 
   const expressApp = app.getHttpAdapter().getInstance();
   return serverlessExpress({ app: expressApp });

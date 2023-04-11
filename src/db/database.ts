@@ -9,14 +9,9 @@ export class Database {
 
     private constructor() {
         this.pool = new Pool({
-            // user: 'postgres',
-            // host: 'db-dev-flowers-shop.c9xpt800a7s6.eu-west-1.rds.amazonaws.com',
-            // database: 'flowers_shop',
-            // password: 'postgres',
-            // port: 5432,
             ssl: { rejectUnauthorized: false }
         });
-        this.pool.on('error', (err, client) => {
+        this.pool.on('error', (err, _) => {
             console.error('Error:', err);
         });
     }
@@ -31,7 +26,7 @@ export class Database {
         }
     }
 
-    private products: Product[] = [
+    private PRODUCTS: Product[] = [
         {
             id: '00000000-0000-0000-0000-000000000001',
             title: 'Product 1',
@@ -43,7 +38,7 @@ export class Database {
             title: 'Product 2',
             description: 'Product 2 description',
             price: 19.99,
-        },
+        }
     ];
 
     public static getInstance(): Database {
@@ -80,7 +75,7 @@ export class Database {
         const itemsResult = await this.query(itemsQuery, itemsValues);
 
         const items = itemsResult.rows.map((row) => {
-            const product = this.products.find(p => p.id === row.product_id);
+            const product = this.PRODUCTS.find(p => p.id === row.product_id);
             return {
                 product: {
                     id: product.id,
@@ -125,7 +120,7 @@ export class Database {
     public async checkoutActiveCartForUser(userId: string, body: any): Promise<any> {
         const activeCart = await this.getActiveCartForUser(userId);
         const totalPrice = activeCart.items.reduce((total, item) => {
-            const product = this.products.find((p) => p.id === item.product.id);
+            const product = this.PRODUCTS.find((p) => p.id === item.product.id);
             return total + product.price * item.count;
         }, 0);
 
@@ -167,7 +162,7 @@ export class Database {
 
     public async updateUserCartItems(userId: string, cartItems: CartItem[]): Promise<Cart> {
         // Check that all product IDs are valid
-        const invalidProductIds = cartItems.filter((item) => !this.products.some((product) => product.id === item.product.id));
+        const invalidProductIds = cartItems.filter((item) => !this.PRODUCTS.some((product) => product.id === item.product.id));
         if (invalidProductIds.length > 0) {
             throw new Error(`Invalid product IDs: ${invalidProductIds.map((item) => item.product.id).join(', ')}`);
         }
